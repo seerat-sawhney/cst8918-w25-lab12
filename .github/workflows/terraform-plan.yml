@@ -1,0 +1,53 @@
+name: Terraform Plan
+ 
+on:
+  pull_request:
+    paths:
+      - 'infra/**/*.tf'
+      - '.github/workflows/terraform-plan.yml'
+ 
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+ 
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: |
+          cd infra/tf-app
+          terraform init
+        env:
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+      - name: Terraform Plan
+        run: |
+          cd infra/tf-app
+          terraform plan -out=tfplan
+      - name: Add Plan Comment
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `Terraform Plan Results:
+            \`\`\`
+            ${process.env.PLAN_OUTPUT}
+            \`\`\`
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })

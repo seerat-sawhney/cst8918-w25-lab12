@@ -1,0 +1,92 @@
+name: Terraform Drift Detection
+ 
+on:
+
+  schedule:
+
+    - cron: '0 0 * * *'  # Run daily at midnight
+
+  workflow_dispatch:  # Allow manual triggers
+ 
+permissions:
+
+  id-token: write
+
+  contents: read
+
+  issues: write
+ 
+jobs:
+
+  detect-drift:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+
+        uses: azure/login@v1
+
+        with:
+
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+
+        run: |
+
+          cd infra/tf-app
+
+          terraform init
+
+        env:
+
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+
+      - name: Detect Drift
+
+        id: drift
+
+        run: |
+
+          cd infra/tf-app
+
+          terraform plan -detailed-exitcode
+
+        continue-on-error: true
+
+      - name: Create Issue on Drift
+
+        if: steps.drift.outcome == 'failure'
+
+        uses: actions/github-script@v6
+
+        with:
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          script: |
+
+            github.rest.issues.create({
+
+              owner: context.repo.owner,
+
+              repo: context.repo.repo,
+
+              title: '🚨 Infrastructure Drift Detected',
+
+              body: 'Terraform detected differences between the current state and desired state.'
+
+            })
+ 
