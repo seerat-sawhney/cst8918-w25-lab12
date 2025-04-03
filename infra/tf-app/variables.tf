@@ -1,1 +1,1 @@
-// This file is intentionally empty to follow Terraform standard module structure
+# This file is intentionally empty to follow Terraform standard module structure
