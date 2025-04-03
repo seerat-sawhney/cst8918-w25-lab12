@@ -8,8 +8,8 @@ resource "azurerm_resource_group" "app" {
 resource "azurerm_virtual_network" "app" {
   name                = "jose0337-vnet"
   resource_group_name = azurerm_resource_group.app.name
-  location           = azurerm_resource_group.app.location
-  address_space      = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.app.location
+  address_space       = ["10.0.0.0/16"]
 }
 
 # Subnet
