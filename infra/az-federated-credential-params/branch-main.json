@@ -1,6 +1,6 @@
 {
     "name": "branch-main",
-    "issuer": "[https://token.actions.githubusercontent.com](https://token.actions.githubusercontent.com)",
+    "issuer": "https://token.actions.githubusercontent.com",
     "subject": "repo:seerat-sawhney/cst8918-w25-lab12:branch:main",
     "description": "CST8918 Lab12 - GitHub Actions",
     "audiences": ["api://AzureADTokenExchange"]
