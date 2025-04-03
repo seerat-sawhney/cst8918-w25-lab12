@@ -1,0 +1,42 @@
+name: 'Terraform Deploy'
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**/*.tf'
+      - '.github/workflows/infra-deploy.yml'
+
+# Special permissions required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    working-directory: ./infra/tf-app
+
+jobs:
+  deploy:
+    name: 'Deploy'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
