@@ -2,7 +2,7 @@ name: 'Terraform Drift Detection'
  
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
+    
   workflow_dispatch:      # Allow manual triggers
  
 permissions:
